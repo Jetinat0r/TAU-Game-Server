@@ -209,5 +209,25 @@ class ServerSend
             SendTCPDataToAll(_packet);
         }
     }
+
+    public static void AssignEmergency(int _emergencyID)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.assignEmergency))
+        {
+            _packet.Write(_emergencyID);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
+
+    public static void RemoteCompleteEmergency(int _emergencyID)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.remoteCompleteEmergency))
+        {
+            _packet.Write(_emergencyID);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
     #endregion
 }

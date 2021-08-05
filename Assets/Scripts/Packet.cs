@@ -19,7 +19,9 @@ public enum ServerPackets
     spawnBullet,
     damagePlayer,
     remoteDeath,
-    startRound
+    startRound,
+    assignEmergency,
+    remoteCompleteEmergency
 }
 
 /// <summary>Sent from client to server.</summary>
@@ -30,7 +32,9 @@ public enum ClientPackets
     playerPosRot,
     udpTestReceived,
     weaponSwap,
-    shoot
+    shoot,
+    clientEmergencyStartRequest,
+    clientCompleteEmergency
 }
 
 public class Packet : IDisposable

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Stores info about rounds and what not
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
@@ -15,6 +16,10 @@ public class GameManager : MonoBehaviour
     [Header("Player Vars")]
     public float playerSpeed;
     public float visionRadius;
+
+    [Header("Round Vars")]
+    private bool hasACurrentImportantEmergency = false;
+    private int mostRecentEmergencyID = -1;
 
     private void Awake()
     {
@@ -141,5 +146,28 @@ public class GameManager : MonoBehaviour
         return _numTotal - _traitors;
     }
 
-    //Stores info about rounds and what not
+    public void ProcessEmergencyStartRequest(int _emergencyID, bool _isFirst)
+    {
+        if (_isFirst && hasACurrentImportantEmergency)
+        {
+            return;
+        }
+
+        mostRecentEmergencyID = _emergencyID;
+        ServerSend.AssignEmergency(_emergencyID);
+    }
+
+    //Covers two people fixing the same emergency while a traitor starts it up again, niche application but still good to fix
+    public void ProcessEmergencyCompletion(int _emergencyID)
+    {
+        if (!hasACurrentImportantEmergency)
+        {
+            return;
+        }
+
+        if(_emergencyID == mostRecentEmergencyID)
+        {
+            ServerSend.RemoteCompleteEmergency(_emergencyID);
+        }
+    }
 }

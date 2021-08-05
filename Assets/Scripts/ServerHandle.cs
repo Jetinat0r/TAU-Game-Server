@@ -50,4 +50,39 @@ class ServerHandle
 
         Server.clients[_fromClient].player.Shoot(_position, _rotation, _velocity);
     }
+
+    public static void ClientEmergencyStartRequest(int _fromClient, Packet _packet)
+    {
+        //I think its pretty obvious what this is intended to do
+        //*Foreshadowing lmao*
+
+        int _emergencyID = _packet.ReadInt();
+
+        //Used to separate important and un-important emergencies
+        //if isFirst == true, it is NOT important
+        bool _isFirst = _packet.ReadBool();
+
+        //TODO: Handle this
+        //Ask the Game manager if it can send a new emergency out
+        GameManager.instance.ProcessEmergencyStartRequest(_emergencyID, _isFirst);
+    }
+
+    public static void ClientCompleteEmergency(int _fromClient, Packet _packet)
+    {
+        int _emergencyID = _packet.ReadInt();
+
+        //TODO: Handle this
+
+        //Used to separate important and un-important emergencies
+        //if isFirst == true, it is important
+        bool _isFirst = _packet.ReadBool();
+
+        if (_isFirst)
+        {
+            GameManager.instance.ProcessEmergencyCompletion(_emergencyID);
+            return;
+        }
+
+        ServerSend.RemoteCompleteEmergency(_emergencyID);
+    }
 }
