@@ -131,7 +131,8 @@ public class Server
                 { (int)ClientPackets.weaponSwap, ServerHandle.WeaponSwap },
                 { (int)ClientPackets.shoot, ServerHandle.Shoot },
                 { (int)ClientPackets.clientEmergencyStartRequest, ServerHandle.ClientEmergencyStartRequest },
-                { (int)ClientPackets.clientCompleteEmergency, ServerHandle.ClientCompleteEmergency }
+                { (int)ClientPackets.clientCompleteEmergency, ServerHandle.ClientCompleteEmergency },
+                { (int)ClientPackets.clientCompleteTask, ServerHandle.ClientCompleteTask }
             };
         Debug.Log("Initialized packets.");
     }

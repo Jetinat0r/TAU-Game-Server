@@ -21,6 +21,10 @@ public class GameManager : MonoBehaviour
     private bool hasACurrentImportantEmergency = false;
     private int mostRecentEmergencyID = -1;
 
+    [Header("Teleport Locations")]
+    public List<Transform> spawnLocations;
+    public List<Transform> roundStartLocations;
+
     private void Awake()
     {
         if (instance == null)
@@ -43,6 +47,22 @@ public class GameManager : MonoBehaviour
             //    Debug.Log(item.Key + " " + item.Value.player.name);
             //}
             StartRound();
+        }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            int x = 0;
+            foreach (KeyValuePair<int, Client> _item in Server.clients)
+            {
+                Debug.Log(_item.Key + " " + _item.Value);
+
+                if(_item.Value.player != null)
+                {
+                    ServerSend.RemoteTeleport(_item.Value.player.id, new Vector3(x, 0, 0));
+                }
+                
+                x += 25;
+            }
         }
     }
 
@@ -91,6 +111,16 @@ public class GameManager : MonoBehaviour
         #endregion
 
         ServerSend.StartRound(DetermineNumInnocents(_numActivePlayers), _numActivePlayers, _roleArray, tasksPerPlayer, playerSpeed, visionRadius);
+
+        #region MoveToStartLocation
+        foreach (KeyValuePair<int, Client> _item in Server.clients)
+        {
+            if (_item.Value.player != null)
+            {
+                ServerSend.RemoteTeleport(_item.Value.player.id, roundStartLocations[_item.Value.player.id - 1].position);
+            }
+        }
+        #endregion
     }
 
     //Sets a role for each player in an array that will be sent to everyone

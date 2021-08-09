@@ -21,7 +21,9 @@ public enum ServerPackets
     remoteDeath,
     startRound,
     assignEmergency,
-    remoteCompleteEmergency
+    remoteCompleteEmergency,
+    remoteTeleport,
+    remoteCompleteTask
 }
 
 /// <summary>Sent from client to server.</summary>
@@ -34,7 +36,8 @@ public enum ClientPackets
     weaponSwap,
     shoot,
     clientEmergencyStartRequest,
-    clientCompleteEmergency
+    clientCompleteEmergency,
+    clientCompleteTask
 }
 
 public class Packet : IDisposable

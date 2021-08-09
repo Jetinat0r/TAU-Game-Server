@@ -96,6 +96,9 @@ class ServerSend
             _packet.Write(_player.curWeapon);
             _packet.Write(_player.playerColor);
 
+            // Spawn location index is "- 1" bc player id's are 1-10, and indexes are 0-9
+            _packet.Write(GameManager.instance.spawnLocations[_player.id - 1].position);
+
             SendTCPData(_toClient, _packet);
         }
     }
@@ -225,6 +228,27 @@ class ServerSend
         using (Packet _packet = new Packet((int)ServerPackets.remoteCompleteEmergency))
         {
             _packet.Write(_emergencyID);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
+
+    public static void RemoteTeleport(int _playerID, Vector3 _targetPos)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.remoteTeleport))
+        {
+            _packet.Write(_playerID);
+            _packet.Write(_targetPos);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
+
+    public static void RemoteCompleteTask(int _playerID)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.remoteCompleteTask))
+        {
+            _packet.Write(_playerID);
 
             SendTCPDataToAll(_packet);
         }

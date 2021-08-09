@@ -36,6 +36,8 @@ class ServerHandle
 
     public static void WeaponSwap(int _fromClient, Packet _packet)
     {
+        Debug.Log("Bruh.");
+
         int _weapon = _packet.ReadInt();
 
         Server.clients[_fromClient].player.WeaponSwap(_weapon);
@@ -59,7 +61,7 @@ class ServerHandle
         int _emergencyID = _packet.ReadInt();
 
         //Used to separate important and un-important emergencies
-        //if isFirst == true, it is NOT important
+        //if isFirst == false, it is NOT important
         bool _isFirst = _packet.ReadBool();
 
         //TODO: Handle this
@@ -70,8 +72,6 @@ class ServerHandle
     public static void ClientCompleteEmergency(int _fromClient, Packet _packet)
     {
         int _emergencyID = _packet.ReadInt();
-
-        //TODO: Handle this
 
         //Used to separate important and un-important emergencies
         //if isFirst == true, it is important
@@ -84,5 +84,15 @@ class ServerHandle
         }
 
         ServerSend.RemoteCompleteEmergency(_emergencyID);
+    }
+
+    public static void ClientCompleteTask(int _fromClient, Packet _packet)
+    {
+        //int _index = _packet.ReadInt();
+
+        Server.clients[_fromClient].player.completedTasks++;
+        //TODO: IMPLEMETN GameManager.CheckTaskWin()
+
+        ServerSend.RemoteCompleteTask(_fromClient);
     }
 }

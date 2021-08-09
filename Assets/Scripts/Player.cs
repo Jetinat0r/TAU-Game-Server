@@ -32,9 +32,9 @@ public class Player : MonoBehaviour
     [SerializeField]
     private List<Weapon> weapons;
 
-    [System.NonSerialized]
+    [HideInInspector]
     public int completedTasks = 0;
-    [System.NonSerialized]
+    [HideInInspector]
     public int totalTasks = 0;
 
     //MAY NEED TO BE FIXED UPDATE
