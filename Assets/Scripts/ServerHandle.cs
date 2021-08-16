@@ -103,11 +103,7 @@ class ServerHandle
         bool isRadioActive = _packet.ReadBool();
 
         //Debug.Log("samples:" + samples);
-
-        if(samples > 0)
-        {
-            ServerSend.RemoteSendVoiceChat(_fromClient, voiceSamples, samples, channels, maxFreq, isRadioActive);
-        }
+        ServerSend.RemoteSendVoiceChat(_fromClient, voiceSamples, samples, channels, maxFreq, isRadioActive);
         
     }
 }
