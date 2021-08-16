@@ -253,5 +253,28 @@ class ServerSend
             SendTCPDataToAll(_packet);
         }
     }
+
+    public static void RemoteSendVoiceChat(int _playerID, float[] voiceSamples, int samples, int channels, int maxFreq, bool isRadioActive)
+    {
+        //Debug.Log(" 3123");
+
+        using (Packet _packet = new Packet((int)ServerPackets.remoteSendVoiceChat))
+        {
+            _packet.Write(_playerID);
+
+            _packet.Write(voiceSamples);
+            _packet.Write(samples);
+            _packet.Write(channels);
+            _packet.Write(maxFreq);
+            _packet.Write(isRadioActive);
+
+            SendTCPDataToAll(_playerID, _packet);
+        }
+
+        //foreach (float f in voiceSamples)
+        //{
+        //    Debug.Log(f);
+        //}
+    }
     #endregion
 }

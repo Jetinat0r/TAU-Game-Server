@@ -36,8 +36,6 @@ class ServerHandle
 
     public static void WeaponSwap(int _fromClient, Packet _packet)
     {
-        Debug.Log("Bruh.");
-
         int _weapon = _packet.ReadInt();
 
         Server.clients[_fromClient].player.WeaponSwap(_weapon);
@@ -94,5 +92,22 @@ class ServerHandle
         //TODO: IMPLEMETN GameManager.CheckTaskWin()
 
         ServerSend.RemoteCompleteTask(_fromClient);
+    }
+
+    public static void ClientSendVoiceChat(int _fromClient, Packet _packet)
+    {
+        float[] voiceSamples = _packet.ReadFloatArray();
+        int samples = _packet.ReadInt();
+        int channels = _packet.ReadInt();
+        int maxFreq = _packet.ReadInt();
+        bool isRadioActive = _packet.ReadBool();
+
+        //Debug.Log("samples:" + samples);
+
+        if(samples > 0)
+        {
+            ServerSend.RemoteSendVoiceChat(_fromClient, voiceSamples, samples, channels, maxFreq, isRadioActive);
+        }
+        
     }
 }

@@ -23,7 +23,8 @@ public enum ServerPackets
     assignEmergency,
     remoteCompleteEmergency,
     remoteTeleport,
-    remoteCompleteTask
+    remoteCompleteTask,
+    remoteSendVoiceChat
 }
 
 /// <summary>Sent from client to server.</summary>
@@ -37,7 +38,8 @@ public enum ClientPackets
     shoot,
     clientEmergencyStartRequest,
     clientCompleteEmergency,
-    clientCompleteTask
+    clientCompleteTask,
+    clientSendVoiceChat
 }
 
 public class Packet : IDisposable
@@ -158,6 +160,16 @@ public class Packet : IDisposable
     }
 
     public void Write(int[] _value)
+    {
+        Write(_value.Length);
+
+        for (int i = 0; i < _value.Length; i++)
+        {
+            Write(_value[i]);
+        }
+    }
+
+    public void Write(float[] _value)
     {
         Write(_value.Length);
 
@@ -312,6 +324,19 @@ public class Packet : IDisposable
         for(int i = 0; i < _length; i++)
         {
             _array[i] = ReadInt();
+        }
+
+        return _array;
+    }
+
+    public float[] ReadFloatArray(bool _moveReadPos = true)
+    {
+        int _length = ReadInt(); //Get length of array
+
+        float[] _array = new float[_length];
+        for (int i = 0; i < _length; i++)
+        {
+            _array[i] = ReadFloat();
         }
 
         return _array;

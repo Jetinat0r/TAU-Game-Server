@@ -132,7 +132,8 @@ public class Server
                 { (int)ClientPackets.shoot, ServerHandle.Shoot },
                 { (int)ClientPackets.clientEmergencyStartRequest, ServerHandle.ClientEmergencyStartRequest },
                 { (int)ClientPackets.clientCompleteEmergency, ServerHandle.ClientCompleteEmergency },
-                { (int)ClientPackets.clientCompleteTask, ServerHandle.ClientCompleteTask }
+                { (int)ClientPackets.clientCompleteTask, ServerHandle.ClientCompleteTask },
+                { (int)ClientPackets.clientSendVoiceChat, ServerHandle.ClientSendVoiceChat }
             };
         Debug.Log("Initialized packets.");
     }
