@@ -276,5 +276,28 @@ class ServerSend
         //    Debug.Log(f);
         //}
     }
+
+    public static void RemoteStartEmergencyMeeting(int _playerID)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.remoteStartEmergencyMeeting))
+        {
+            _packet.Write(_playerID);
+            _packet.Write(GameManager.instance.emergencyMeetingTimer);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
+
+    public static void RemoteSendMeetingVotes(List<int> targetPlayerIDs, List<Color> fromPlayerColors, float emergencyMeetingCloseTimer)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.remoteSendMeetingVotes))
+        {
+            _packet.Write(targetPlayerIDs.ToArray());
+            _packet.Write(fromPlayerColors.ToArray());
+            _packet.Write(emergencyMeetingCloseTimer);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
     #endregion
 }

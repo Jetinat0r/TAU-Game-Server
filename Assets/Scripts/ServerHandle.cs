@@ -106,4 +106,28 @@ class ServerHandle
         ServerSend.RemoteSendVoiceChat(_fromClient, voiceSamples, samples, channels, maxFreq, isRadioActive);
         
     }
+
+    public static void ClientStartEmergencyMeeting(int _fromClient, Packet _packet)
+    {
+        //Teleports everyone to the table
+        foreach(KeyValuePair<int, Client> keyPair in Server.clients)
+        {
+            Player _player = keyPair.Value.player;
+            if(_player != null)
+            {
+                ServerSend.RemoteTeleport(_player.id, GameManager.instance.roundStartLocations[_player.id - 1].position);
+            }
+        }
+
+        //Starts the meeting
+        GameManager.instance.StartEmergencyMeeting();
+        ServerSend.RemoteStartEmergencyMeeting(_fromClient);
+    }
+
+    public static void ClientSendMeetingVote(int _fromClient, Packet _packet)
+    {
+        int targetPlayerID = _packet.ReadInt();
+
+        GameManager.instance.AddVote(_fromClient, targetPlayerID);
+    }
 }

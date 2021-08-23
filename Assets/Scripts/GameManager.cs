@@ -20,6 +20,18 @@ public class GameManager : MonoBehaviour
     [Header("Round Vars")]
     private bool hasACurrentImportantEmergency = false;
     private int mostRecentEmergencyID = -1;
+    public float emergencyMeetingTimer = 180f;
+    //Used to account for network timing
+    public float emergencyMeetingTimerOvertime = 3f;
+    //The wait-for so that players can read who voted for who
+    public float emergencyMeetingCloseTimer = 5f;
+
+    [Header("Emergency Meeting Vars")]
+    private bool isMeetingActive = false;
+    private float activeMeetingTimer;
+
+    private List<int> targetPlayers;
+    private List<Color> fromPlayers;
 
     [Header("Teleport Locations")]
     public List<Transform> spawnLocations;
@@ -40,6 +52,16 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if (isMeetingActive)
+        {
+            activeMeetingTimer -= Time.deltaTime;
+
+            if(activeMeetingTimer <= 0)
+            {
+                EndEmergencyMeeting();
+            }
+        }
+
         if (Input.GetKeyDown(KeyCode.I))
         {
             //foreach (KeyValuePair<int , Client> item in Server.clients)
@@ -199,5 +221,71 @@ public class GameManager : MonoBehaviour
         {
             ServerSend.RemoteCompleteEmergency(_emergencyID);
         }
+    }
+
+    public void StartEmergencyMeeting()
+    {
+        targetPlayers = new List<int>();
+        fromPlayers = new List<Color>();
+
+        activeMeetingTimer = emergencyMeetingTimer + emergencyMeetingTimerOvertime;
+        isMeetingActive = true;
+    }
+
+    public void AddVote(int fromPlayerID, int targetPlayerID)
+    {
+        Player fromPlayer = Server.clients[fromPlayerID].player;
+        if (targetPlayerID == 0)
+        {
+            if(fromPlayer != null)
+            {
+                targetPlayers.Add(targetPlayerID);
+                fromPlayers.Add(fromPlayer.playerColor);
+            }
+        }
+        else
+        {
+            Player targetPlayer = Server.clients[targetPlayerID].player;
+            if (targetPlayer != null && fromPlayer != null)
+            {
+                targetPlayers.Add(targetPlayerID);
+                fromPlayers.Add(fromPlayer.playerColor);
+            }
+        }
+
+        #region Check if meeting is over before timer
+        //Check if all players have voted
+
+        //Get all active players
+        List<Player> activePlayers = new List<Player>();
+
+        foreach(KeyValuePair<int, Client> pair in Server.clients)
+        {
+            if(pair.Value.player != null)
+            {
+                activePlayers.Add(pair.Value.player);
+            }
+        }
+
+        //Check if they have voted
+        foreach(Player player in activePlayers)
+        {
+            //IF: player is not found to have voted, do not end meeting
+            if (!fromPlayers.Contains(player.playerColor))
+            {
+                return;
+            }
+        }
+
+        EndEmergencyMeeting();
+        #endregion
+    }
+
+    public void EndEmergencyMeeting()
+    {
+        isMeetingActive = false;
+
+        ServerSend.RemoteSendMeetingVotes(targetPlayers, fromPlayers, emergencyMeetingCloseTimer);
+        //TODO: send meeting stuff
     }
 }
