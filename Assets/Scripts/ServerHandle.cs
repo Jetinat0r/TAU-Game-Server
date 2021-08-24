@@ -130,4 +130,13 @@ class ServerHandle
 
         GameManager.instance.AddVote(_fromClient, targetPlayerID);
     }
+
+    public static void ClientReadyUp(int _fromClient, Packet _packet)
+    {
+        bool isReady = _packet.ReadBool();
+
+        Server.clients[_fromClient].player.isReady = isReady;
+
+        GameManager.instance.CheckRoundStart();
+    }
 }

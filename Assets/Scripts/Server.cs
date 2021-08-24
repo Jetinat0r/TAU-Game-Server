@@ -135,7 +135,8 @@ public class Server
                 { (int)ClientPackets.clientCompleteTask, ServerHandle.ClientCompleteTask },
                 { (int)ClientPackets.clientSendVoiceChat, ServerHandle.ClientSendVoiceChat },
                 { (int)ClientPackets.clientStartEmergencyMeeting, ServerHandle.ClientStartEmergencyMeeting },
-                { (int)ClientPackets.clientSendMeetingVote, ServerHandle.ClientSendMeetingVote }
+                { (int)ClientPackets.clientSendMeetingVote, ServerHandle.ClientSendMeetingVote },
+                { (int)ClientPackets.clientReadyUp, ServerHandle.ClientReadyUp }
             };
         Debug.Log("Initialized packets.");
     }

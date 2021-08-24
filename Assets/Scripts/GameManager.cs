@@ -62,32 +62,35 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            //foreach (KeyValuePair<int , Client> item in Server.clients)
-            //{
-            //    Debug.Log(item.Key + " " + item.Value.player.name);
-            //}
-            StartRound();
-        }
+        #region Dev Keys
+        //if (Input.GetKeyDown(KeyCode.I))
+        //{
+        //    //foreach (KeyValuePair<int , Client> item in Server.clients)
+        //    //{
+        //    //    Debug.Log(item.Key + " " + item.Value.player.name);
+        //    //}
+        //    StartRound();
+        //}
 
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            int x = 0;
-            foreach (KeyValuePair<int, Client> _item in Server.clients)
-            {
-                Debug.Log(_item.Key + " " + _item.Value);
+        //if (Input.GetKeyDown(KeyCode.T))
+        //{
+        //    int x = 0;
+        //    foreach (KeyValuePair<int, Client> _item in Server.clients)
+        //    {
+        //        Debug.Log(_item.Key + " " + _item.Value);
 
-                if(_item.Value.player != null)
-                {
-                    ServerSend.RemoteTeleport(_item.Value.player.id, new Vector3(x, 0, 0));
-                }
-                
-                x += 25;
-            }
-        }
+        //        if(_item.Value.player != null)
+        //        {
+        //            ServerSend.RemoteTeleport(_item.Value.player.id, new Vector3(x, 0, 0));
+        //        }
+
+        //        x += 25;
+        //    }
+        //}
+        #endregion
     }
 
+    #region Start Round Stuff
     public void StartRound()
     {
         roundStarted = true;
@@ -198,6 +201,43 @@ public class GameManager : MonoBehaviour
         return _numTotal - _traitors;
     }
 
+    public void CheckRoundStart()
+    {
+        if (!roundStarted)
+        {
+            //Get a list of all active players
+            List<Player> activePlayers = new List<Player>();
+
+            foreach (KeyValuePair<int, Client> pair in Server.clients)
+            {
+                if (pair.Value.player != null)
+                {
+                    activePlayers.Add(pair.Value.player);
+                }
+            }
+
+            if (activePlayers.Count < 3)
+            {
+                return;
+            }
+
+            //Check if they have voted
+            foreach (Player player in activePlayers)
+            {
+                //IF: player is not found to have voted, do not end meeting
+                if (!player.isReady)
+                {
+                    return;
+                }
+            }
+
+            StartRound();
+        }
+    }
+    #endregion
+
+
+    #region Emergency Task Stuff
     public void ProcessEmergencyStartRequest(int _emergencyID, bool _isFirst)
     {
         if (_isFirst && hasACurrentImportantEmergency)
@@ -222,7 +262,10 @@ public class GameManager : MonoBehaviour
             ServerSend.RemoteCompleteEmergency(_emergencyID);
         }
     }
+    #endregion
 
+
+    #region Emergency Meeting Stuff
     public void StartEmergencyMeeting()
     {
         targetPlayers = new List<int>();
@@ -253,39 +296,88 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        #region Check if meeting is over before timer
-        //Check if all players have voted
-
-        //Get all active players
-        List<Player> activePlayers = new List<Player>();
-
-        foreach(KeyValuePair<int, Client> pair in Server.clients)
-        {
-            if(pair.Value.player != null)
-            {
-                activePlayers.Add(pair.Value.player);
-            }
-        }
-
-        //Check if they have voted
-        foreach(Player player in activePlayers)
-        {
-            //IF: player is not found to have voted, do not end meeting
-            if (!fromPlayers.Contains(player.playerColor))
-            {
-                return;
-            }
-        }
-
-        EndEmergencyMeeting();
-        #endregion
+        CheckMeetingAllVotes();
     }
 
     public void EndEmergencyMeeting()
     {
         isMeetingActive = false;
 
+        #region Determine who was voted for
+        //Determine who got voted for
+        //Default is "skip"
+        int mostFrequentID = 0;
+        int maxCount = 0;
+        int curCount = 0;
+
+        for (int i = 0; i < targetPlayers.Count; i++)
+        {
+            for (int j = i; j < targetPlayers.Count; j++)
+            {
+                if (targetPlayers[i] == targetPlayers[j])
+                {
+                    curCount++;
+                }
+            }
+
+            if (curCount > maxCount)
+            {
+                mostFrequentID = targetPlayers[i];
+                maxCount = curCount;
+            }
+            else if (curCount == maxCount)
+            {
+                mostFrequentID = 0;
+            }
+
+            curCount = 0;
+        }
+        #endregion
+
         ServerSend.RemoteSendMeetingVotes(targetPlayers, fromPlayers, emergencyMeetingCloseTimer);
-        //TODO: send meeting stuff
+
+        if(mostFrequentID != 0)
+        {
+            StartCoroutine(KillVotedPlayer(mostFrequentID, emergencyMeetingCloseTimer));
+        }
     }
+
+    private IEnumerator KillVotedPlayer(int playerToKill, float timeToKill)
+    {
+        yield return new WaitForSeconds(timeToKill);
+
+        ServerSend.RemoteDeath(playerToKill, 1);
+    }
+
+    public void CheckMeetingAllVotes()
+    {
+        if (isMeetingActive)
+        {
+            //Check if all players have voted
+
+            //Get all active players
+            List<Player> activePlayers = new List<Player>();
+
+            foreach (KeyValuePair<int, Client> pair in Server.clients)
+            {
+                if (pair.Value.player != null && pair.Value.player.isAlive)
+                {
+                    activePlayers.Add(pair.Value.player);
+                }
+            }
+
+            //Check if they have voted
+            foreach (Player player in activePlayers)
+            {
+                //IF: player is not found to have voted, do not end meeting
+                if (!fromPlayers.Contains(player.playerColor))
+                {
+                    return;
+                }
+            }
+
+            EndEmergencyMeeting();
+        }
+    }
+    #endregion
 }

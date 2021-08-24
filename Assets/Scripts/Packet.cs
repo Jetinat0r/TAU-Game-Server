@@ -43,7 +43,8 @@ public enum ClientPackets
     clientCompleteTask,
     clientSendVoiceChat,
     clientStartEmergencyMeeting,
-    clientSendMeetingVote
+    clientSendMeetingVote,
+    clientReadyUp
 }
 
 public class Packet : IDisposable

@@ -37,6 +37,9 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public int totalTasks = 0;
 
+    [HideInInspector]
+    public bool isReady = false;
+
     //MAY NEED TO BE FIXED UPDATE
     private void FixedUpdate()
     {

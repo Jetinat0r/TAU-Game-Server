@@ -117,6 +117,9 @@ class ServerSend
 
     public static void PlayerDisconnected(int _playerId)
     {
+        GameManager.instance.CheckMeetingAllVotes();
+        GameManager.instance.CheckRoundStart();
+
         using (Packet _packet = new Packet((int)ServerPackets.playerDisconnected))
         {
             _packet.Write(_playerId);
@@ -128,6 +131,10 @@ class ServerSend
 
     public static void RemoteDisconnect(int _playerId, string _msg)
     {
+        GameManager.instance.CheckMeetingAllVotes();
+        GameManager.instance.CheckRoundStart();
+
+
         using (Packet _packet = new Packet((int)ServerPackets.remoteDisconnect))
         {
             _packet.Write(_playerId);
