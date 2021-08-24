@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     [Header("Player Vars")]
     public float playerSpeed;
     public float visionRadius;
+    public int startingMeetings;
 
     [Header("Round Vars")]
     private bool hasACurrentImportantEmergency = false;
@@ -135,13 +136,14 @@ public class GameManager : MonoBehaviour
         }
         #endregion
 
-        ServerSend.StartRound(DetermineNumInnocents(_numActivePlayers), _numActivePlayers, _roleArray, tasksPerPlayer, playerSpeed, visionRadius);
+        ServerSend.StartRound(DetermineNumInnocents(_numActivePlayers), _numActivePlayers, _roleArray, tasksPerPlayer, playerSpeed, visionRadius, startingMeetings);
 
         #region MoveToStartLocation
         foreach (KeyValuePair<int, Client> _item in Server.clients)
         {
             if (_item.Value.player != null)
             {
+                _item.Value.player.isReady = false;
                 ServerSend.RemoteTeleport(_item.Value.player.id, roundStartLocations[_item.Value.player.id - 1].position);
             }
         }
@@ -346,7 +348,11 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(timeToKill);
 
-        ServerSend.RemoteDeath(playerToKill, 1);
+        Player player = Server.clients[playerToKill].player;
+        if(player != null)
+        {
+            player.Die(1);
+        }
     }
 
     public void CheckMeetingAllVotes()
@@ -379,5 +385,166 @@ public class GameManager : MonoBehaviour
             EndEmergencyMeeting();
         }
     }
+    #endregion
+
+
+    #region Round End Stuff
+    public void EndRound(int victoryType)
+    {
+        roundStarted = false;
+        NetworkManager.instance.roundStarted = false;
+
+        // Victory Key
+        // 0: Innocnet Win
+        // 1: Traitor Win
+
+        if(victoryType == 0)
+        {
+            ServerSend.RemoteEndRound(0);
+        }
+        else if(victoryType == 1)
+        {
+            ServerSend.RemoteEndRound(1);
+        }
+
+        //Resurrect Players and teleport them back to the lobby
+        foreach (KeyValuePair<int, Client> pair in Server.clients)
+        {
+            if (pair.Value.player != null)
+            {
+                pair.Value.player.Resurrect();
+                ServerSend.RemoteTeleport(pair.Value.player.id, spawnLocations[pair.Value.player.id - 1].position);
+            }
+        }
+    }
+
+    public void CheckWinConditions()
+    {
+        if (roundStarted)
+        {
+            //Get all active players
+            List<Player> activePlayers = new List<Player>();
+
+            foreach (KeyValuePair<int, Client> pair in Server.clients)
+            {
+                if (pair.Value.player != null)
+                {
+                    activePlayers.Add(pair.Value.player);
+                }
+            }
+
+            //Ensure that there are people on the server
+            if (activePlayers.Count == 0)
+            {
+                EndRound(0);
+                return;
+            }
+
+            //Check Win Conditions
+            #region Innocent Win
+            int curComplete = 0;
+            int total = 0;
+
+            bool isAnyTraitors = false;
+
+            foreach (Player player in activePlayers)
+            {
+                if (player.gameRole == 1)
+                {
+                    curComplete += player.completedTasks;
+                    total += player.totalTasks;
+                }
+
+                if (player.gameRole == 2 && player.isAlive)
+                {
+                    isAnyTraitors = true;
+                }
+            }
+
+            if (curComplete == total)
+            {
+                EndRound(0);
+                return;
+            }
+
+            if (!isAnyTraitors)
+            {
+                EndRound(0);
+                return;
+            }
+            #endregion
+
+            #region Traitor Win
+            bool isAnyInnocents = false;
+
+            foreach (Player player in activePlayers)
+            {
+                if (player.gameRole == 1 && player.isAlive)
+                {
+                    isAnyInnocents = true;
+                }
+            }
+
+            if (!isAnyInnocents)
+            {
+                EndRound(1);
+                return;
+            }
+            #endregion
+        }
+    }
+
+    //private void CheckInnocentWin(List<Player> activePlayers)
+    //{
+    //    int curComplete = 0;
+    //    int total = 0;
+
+    //    bool isAnyTraitors = false;
+
+    //    foreach (Player player in activePlayers)
+    //    {
+    //        if (player.gameRole == 1)
+    //        {
+    //            curComplete += player.completedTasks;
+    //            total += player.totalTasks;
+    //        }
+
+    //        if (player.gameRole == 2 && player.isAlive)
+    //        {
+    //            isAnyTraitors = true;
+    //        }
+    //    }
+
+    //    if(curComplete == total)
+    //    {
+    //        EndRound(0);
+    //        return;
+    //    }
+
+    //    if (!isAnyTraitors)
+    //    {
+    //        EndRound(0);
+    //        return;
+    //    }
+    //}
+
+    //private void CheckTraitorWin(List<Player> activePlayers)
+    //{
+    //    bool isAnyInnocents = false;
+
+    //    foreach (Player player in activePlayers)
+    //    {
+    //        if (player.gameRole == 1 && player.isAlive)
+    //        {
+    //            isAnyInnocents = true;
+    //        }
+    //    }
+
+    //    if (!isAnyInnocents)
+    //    {
+    //        EndRound(1);
+    //        return;
+    //    }
+    //}
     #endregion
 }

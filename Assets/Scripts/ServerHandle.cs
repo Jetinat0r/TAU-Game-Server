@@ -89,7 +89,8 @@ class ServerHandle
         //int _index = _packet.ReadInt();
 
         Server.clients[_fromClient].player.completedTasks++;
-        //TODO: IMPLEMETN GameManager.CheckTaskWin()
+
+        GameManager.instance.CheckWinConditions();
 
         ServerSend.RemoteCompleteTask(_fromClient);
     }

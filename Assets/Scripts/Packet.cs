@@ -26,7 +26,8 @@ public enum ServerPackets
     remoteCompleteTask,
     remoteSendVoiceChat,
     remoteStartEmergencyMeeting,
-    remoteSendMeetingVotes
+    remoteSendMeetingVotes,
+    remoteEndRound
 }
 
 /// <summary>Sent from client to server.</summary>

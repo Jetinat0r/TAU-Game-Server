@@ -116,18 +116,23 @@ public class Player : MonoBehaviour
         if (health <= 0)
         {
             health = 0;
-            Die();
+            Die(0);
         }
     }
 
-    public void Die()
+    public void Die(int deathType)
     {
+        //0: bullets
+        //1: voting
+
+
         isAlive = false;
 
         int _layer = LayerMask.NameToLayer("Ghost");
         gameObject.layer = _layer;
 
-        ServerSend.RemoteDeath(id, 0);
+        ServerSend.RemoteDeath(id, deathType);
+
     }
 
     public void Resurrect()
@@ -138,6 +143,7 @@ public class Player : MonoBehaviour
         int _layer = LayerMask.NameToLayer("Default");
         gameObject.layer = _layer;
 
+        gameRole = 0;
         //ServerSend.Resurrect();
     }
 

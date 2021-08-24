@@ -117,9 +117,6 @@ class ServerSend
 
     public static void PlayerDisconnected(int _playerId)
     {
-        GameManager.instance.CheckMeetingAllVotes();
-        GameManager.instance.CheckRoundStart();
-
         using (Packet _packet = new Packet((int)ServerPackets.playerDisconnected))
         {
             _packet.Write(_playerId);
@@ -127,14 +124,14 @@ class ServerSend
 
             SendTCPDataToAll(_packet);
         }
+
+        GameManager.instance.CheckMeetingAllVotes();
+        GameManager.instance.CheckRoundStart();
+        GameManager.instance.CheckWinConditions();
     }
 
     public static void RemoteDisconnect(int _playerId, string _msg)
     {
-        GameManager.instance.CheckMeetingAllVotes();
-        GameManager.instance.CheckRoundStart();
-
-
         using (Packet _packet = new Packet((int)ServerPackets.remoteDisconnect))
         {
             _packet.Write(_playerId);
@@ -142,6 +139,10 @@ class ServerSend
 
             SendTCPData(_playerId, _packet);
         }
+
+        GameManager.instance.CheckMeetingAllVotes();
+        GameManager.instance.CheckRoundStart();
+        GameManager.instance.CheckWinConditions();
     }
 
     public static void SetRole(int _playerId, int _role)
@@ -203,9 +204,11 @@ class ServerSend
 
             SendTCPDataToAll(_packet);
         }
+
+        GameManager.instance.CheckWinConditions();
     }
 
-    public static void StartRound(int _numActivePlayers, int _numInnocents, int[] _roleArray, int _tasksPerPlayer, float _playerSpeed, float _visionRadius)
+    public static void StartRound(int _numActivePlayers, int _numInnocents, int[] _roleArray, int _tasksPerPlayer, float _playerSpeed, float _visionRadius, int _startingMeetings)
     {
         using (Packet _packet = new Packet((int)ServerPackets.startRound))
         {
@@ -215,6 +218,7 @@ class ServerSend
             _packet.Write(_tasksPerPlayer);
             _packet.Write(_playerSpeed);
             _packet.Write(_visionRadius);
+            _packet.Write(_startingMeetings);
 
             SendTCPDataToAll(_packet);
         }
@@ -302,6 +306,16 @@ class ServerSend
             _packet.Write(targetPlayerIDs.ToArray());
             _packet.Write(fromPlayerColors.ToArray());
             _packet.Write(emergencyMeetingCloseTimer);
+
+            SendTCPDataToAll(_packet);
+        }
+    }
+
+    public static void RemoteEndRound(int victoryType)
+    {
+        using (Packet _packet = new Packet((int)ServerPackets.remoteEndRound))
+        {
+            _packet.Write(victoryType);
 
             SendTCPDataToAll(_packet);
         }
