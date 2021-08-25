@@ -136,7 +136,8 @@ public class Server
                 { (int)ClientPackets.clientSendVoiceChat, ServerHandle.ClientSendVoiceChat },
                 { (int)ClientPackets.clientStartEmergencyMeeting, ServerHandle.ClientStartEmergencyMeeting },
                 { (int)ClientPackets.clientSendMeetingVote, ServerHandle.ClientSendMeetingVote },
-                { (int)ClientPackets.clientReadyUp, ServerHandle.ClientReadyUp }
+                { (int)ClientPackets.clientReadyUp, ServerHandle.ClientReadyUp },
+                { (int)ClientPackets.devSetRoundVars, ServerHandle.DevSetRoundVars }
             };
         Debug.Log("Initialized packets.");
     }

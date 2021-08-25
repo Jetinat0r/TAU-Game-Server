@@ -77,7 +77,7 @@ class ServerHandle
 
         if (_isFirst)
         {
-            GameManager.instance.ProcessEmergencyCompletion(_emergencyID);
+            GameManager.instance.ProcessEmergencyCompletion(_emergencyID, _isFirst);
             return;
         }
 
@@ -110,19 +110,22 @@ class ServerHandle
 
     public static void ClientStartEmergencyMeeting(int _fromClient, Packet _packet)
     {
-        //Teleports everyone to the table
-        foreach(KeyValuePair<int, Client> keyPair in Server.clients)
+        if (!GameManager.instance.hasACurrentImportantEmergency)
         {
-            Player _player = keyPair.Value.player;
-            if(_player != null)
+            //Teleports everyone to the table
+            foreach (KeyValuePair<int, Client> keyPair in Server.clients)
             {
-                ServerSend.RemoteTeleport(_player.id, GameManager.instance.roundStartLocations[_player.id - 1].position);
+                Player _player = keyPair.Value.player;
+                if (_player != null)
+                {
+                    ServerSend.RemoteTeleport(_player.id, GameManager.instance.roundStartLocations[_player.id - 1].position);
+                }
             }
-        }
 
-        //Starts the meeting
-        GameManager.instance.StartEmergencyMeeting();
-        ServerSend.RemoteStartEmergencyMeeting(_fromClient);
+            //Starts the meeting
+            GameManager.instance.StartEmergencyMeeting();
+            ServerSend.RemoteStartEmergencyMeeting(_fromClient);
+        }
     }
 
     public static void ClientSendMeetingVote(int _fromClient, Packet _packet)
@@ -139,5 +142,19 @@ class ServerHandle
         Server.clients[_fromClient].player.isReady = isReady;
 
         GameManager.instance.CheckRoundStart();
+    }
+
+    public static void DevSetRoundVars(int _fromClient, Packet _packet)
+    {
+        float playerSpeed = _packet.ReadFloat();
+        float visionRadius = _packet.ReadFloat();
+        float viewAngle = _packet.ReadFloat();
+        int startingMeetings = _packet.ReadInt();
+        float radioChargeTime = _packet.ReadFloat();
+        float emergencyMeetingTimer = _packet.ReadFloat();
+        int playersPerTraitor = _packet.ReadInt();
+        int tasksPerPlayer = _packet.ReadInt();
+
+        GameManager.instance.SetRoundVars(playerSpeed, visionRadius, viewAngle, startingMeetings, radioChargeTime, emergencyMeetingTimer, playersPerTraitor, tasksPerPlayer);
     }
 }

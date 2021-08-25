@@ -16,10 +16,13 @@ public class GameManager : MonoBehaviour
     [Header("Player Vars")]
     public float playerSpeed;
     public float visionRadius;
+    public float viewAngle = 360f;
     public int startingMeetings;
+    public float radioChargeTime;
 
     [Header("Round Vars")]
-    private bool hasACurrentImportantEmergency = false;
+    [HideInInspector]
+    public bool hasACurrentImportantEmergency = false;
     private int mostRecentEmergencyID = -1;
     public float emergencyMeetingTimer = 180f;
     //Used to account for network timing
@@ -37,6 +40,10 @@ public class GameManager : MonoBehaviour
     [Header("Teleport Locations")]
     public List<Transform> spawnLocations;
     public List<Transform> roundStartLocations;
+
+    [Header("Sabotage Doors")]
+    //Attatch a collider to each of em
+    public List<GameObject> sabotageDoors;
 
     private void Awake()
     {
@@ -91,6 +98,18 @@ public class GameManager : MonoBehaviour
         #endregion
     }
 
+    public void SetRoundVars(float _playerSpeed, float _visionRadius, float _viewAngle, int _startingMeetings, float _radioChargeTime, float _emergencyMeetingTimer, int _playersPerTraitor, int _tasksPerPlayer)
+    {
+        playerSpeed = _playerSpeed;
+        visionRadius = _visionRadius;
+        viewAngle = _viewAngle;
+        startingMeetings = _startingMeetings;
+        radioChargeTime = _radioChargeTime;
+        emergencyMeetingTimer = _emergencyMeetingTimer;
+        playersPerTraitor = _playersPerTraitor;
+        tasksPerPlayer = _tasksPerPlayer;
+    }
+
     #region Start Round Stuff
     public void StartRound()
     {
@@ -136,7 +155,7 @@ public class GameManager : MonoBehaviour
         }
         #endregion
 
-        ServerSend.StartRound(DetermineNumInnocents(_numActivePlayers), _numActivePlayers, _roleArray, tasksPerPlayer, playerSpeed, visionRadius, startingMeetings);
+        ServerSend.StartRound(DetermineNumInnocents(_numActivePlayers), _numActivePlayers, _roleArray, tasksPerPlayer, playerSpeed, visionRadius, viewAngle, startingMeetings, radioChargeTime);
 
         #region MoveToStartLocation
         foreach (KeyValuePair<int, Client> _item in Server.clients)
@@ -247,22 +266,41 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        mostRecentEmergencyID = _emergencyID;
+        if (_isFirst)
+        {
+            hasACurrentImportantEmergency = true;
+            mostRecentEmergencyID = _emergencyID;
+        }
+        else
+        {
+            //Activate the door
+            sabotageDoors[_emergencyID - 1].SetActive(true);
+        }
+        
         ServerSend.AssignEmergency(_emergencyID);
     }
 
     //Covers two people fixing the same emergency while a traitor starts it up again, niche application but still good to fix
-    public void ProcessEmergencyCompletion(int _emergencyID)
+    public void ProcessEmergencyCompletion(int _emergencyID, bool _isFirst)
     {
-        if (!hasACurrentImportantEmergency)
+        if (_isFirst)
         {
-            return;
+            if (!hasACurrentImportantEmergency)
+            {
+                return;
+            }
+
+            if (_emergencyID == mostRecentEmergencyID)
+            {
+                hasACurrentImportantEmergency = false;
+            }
+        }
+        else
+        {
+            sabotageDoors[_emergencyID - 1].SetActive(false);
         }
 
-        if(_emergencyID == mostRecentEmergencyID)
-        {
-            ServerSend.RemoteCompleteEmergency(_emergencyID);
-        }
+        ServerSend.RemoteCompleteEmergency(_emergencyID);
     }
     #endregion
 
@@ -415,6 +453,11 @@ public class GameManager : MonoBehaviour
                 pair.Value.player.Resurrect();
                 ServerSend.RemoteTeleport(pair.Value.player.id, spawnLocations[pair.Value.player.id - 1].position);
             }
+        }
+
+        foreach(GameObject door in sabotageDoors)
+        {
+            door.SetActive(false);
         }
     }
 

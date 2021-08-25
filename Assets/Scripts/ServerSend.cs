@@ -208,7 +208,7 @@ class ServerSend
         GameManager.instance.CheckWinConditions();
     }
 
-    public static void StartRound(int _numActivePlayers, int _numInnocents, int[] _roleArray, int _tasksPerPlayer, float _playerSpeed, float _visionRadius, int _startingMeetings)
+    public static void StartRound(int _numActivePlayers, int _numInnocents, int[] _roleArray, int _tasksPerPlayer, float _playerSpeed, float _visionRadius, float _viewAngle, int _startingMeetings, float _radioChargeTime)
     {
         using (Packet _packet = new Packet((int)ServerPackets.startRound))
         {
@@ -218,7 +218,9 @@ class ServerSend
             _packet.Write(_tasksPerPlayer);
             _packet.Write(_playerSpeed);
             _packet.Write(_visionRadius);
+            _packet.Write(_viewAngle);
             _packet.Write(_startingMeetings);
+            _packet.Write(_radioChargeTime);
 
             SendTCPDataToAll(_packet);
         }

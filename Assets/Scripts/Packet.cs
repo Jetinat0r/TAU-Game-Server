@@ -45,7 +45,8 @@ public enum ClientPackets
     clientSendVoiceChat,
     clientStartEmergencyMeeting,
     clientSendMeetingVote,
-    clientReadyUp
+    clientReadyUp,
+    devSetRoundVars
 }
 
 public class Packet : IDisposable
